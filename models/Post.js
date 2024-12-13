@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-  images: { type: [String], required: true }, // Array of image URLs
   title: { type: String, required: true },
-  description: { type: String, required: true },
-  postId: { type: String, unique: true, required: true },
+  body: { type: String, required: true },
+  image: { type: String },
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+  author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });
 
 const Post = mongoose.model("Post", postSchema);

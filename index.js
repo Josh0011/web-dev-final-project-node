@@ -5,6 +5,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import userRoutes from "./routes/users.js";
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js"
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -35,9 +36,9 @@ if (process.env.NODE_ENV === "production") {
 }
 app.use(session(sessionOptions));
 app.use(express.json());
-// Routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/api/profile", profileRoutes)
 
 app.listen(4001)
