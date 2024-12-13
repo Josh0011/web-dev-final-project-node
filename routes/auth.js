@@ -1,20 +1,33 @@
-const express = require("express");
-const admin = require("../firebaseConfig");
+import express from "express";
+import admin from "../firebaseConfig.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
-// Verify Firebase Token
 router.post("/login", async (req, res) => {
-    const { token } = req.body;
+  const { token } = req.body;
 
-    try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const uid = decodedToken.uid; // User's unique ID
-        res.status(200).json({ uid });
-    } catch (error) {
-        console.error("Token verification failed:", error);
-        res.status(401).json({ error: "Unauthorized" });
+  console.log("Login request received:", token); // Debug log
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    console.log("Decoded token UID:", uid); // Debug log
+
+    const user = await User.findOne({ firebaseUid: uid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    console.log("User found:", user); // Debug log
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    res.status(401).json({ message: "Unauthorized" });
+  }
 });
 
-module.exports = router;
+
+export default router;
