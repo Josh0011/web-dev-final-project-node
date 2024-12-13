@@ -9,6 +9,43 @@ const router = express.Router();
 router.use(authenticate);
 
 
+router.get("/profile", async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const profile = await Profile.findOne({ user: userId }).populate("user", "email role");
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    res.status(200).json(profile);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+});
+
+router.put("/profile", async (req, res) => {
+  const userId = req.userId;
+  const { username, brawlstarsId, profilePic } = req.body;
+
+  try {
+    const updatedProfile = await Profile.findOneAndUpdate(
+      { user: userId },
+      { username, brawlstarsId, profilePic },
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
+  }
+});
+
+
 router.get("/", async (req, res) => {
   const userId = req.userId; 
 

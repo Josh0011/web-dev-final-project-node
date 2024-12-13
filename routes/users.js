@@ -4,10 +4,10 @@ import { requireAdmin } from "../permissions/role.js";
 
 const router = express.Router();
 
+import Profile from "../models/Profile.js";
+
 router.post("/register", async (req, res) => {
   const { firebaseUid, email, role } = req.body;
-
-  console.log("Received registration request:", { firebaseUid, email, role });
 
   try {
     if (!firebaseUid || !email || !role) {
@@ -19,19 +19,23 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+   
     const newUser = new User({ firebaseUid, email, role });
     const savedUser = await newUser.save();
 
-    console.log("User registered in MongoDB:", savedUser);
-    res.status(201).json({ message: "User registered successfully" });
+    
+    const newProfile = new Profile({
+      user: savedUser._id,
+      username: email.split("@")[0], 
+    });
+    await newProfile.save();
+
+    res.status(201).json({ message: "User registered successfully", user: savedUser });
   } catch (error) {
-  
     if (error.code === 11000) {
-      console.error("Duplicate key error:", error.keyValue);
-      res.status(400).json({ message: "Duplicate field: " + JSON.stringify(error.keyValue) });
+      res.status(400).json({ message: "Duplicate field", error: error.keyValue });
     } else {
-      console.error("Error registering user in MongoDB:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ message: "Internal server error", error });
     }
   }
 });
@@ -72,54 +76,56 @@ router.put("/ban/:id", requireAdmin, async (req, res) => {
 
 router.post("/follow/:id", async (req, res) => {
   const userId = req.userId;
-  const { id } = req.params;
+  const { id: followId } = req.params;
 
   try {
-    const user = await User.findById(userId);
-    const userToFollow = await User.findById(id);
+    const [profile, profileToFollow] = await Promise.all([
+      Profile.findOne({ user: userId }),
+      Profile.findOne({ user: followId }),
+    ]);
 
-    if (!userToFollow) {
-      return res.status(404).json({ message: "User to follow not found" });
+    if (!profile || !profileToFollow) {
+      return res.status(404).json({ message: "User profile not found" });
     }
 
-    if (!user.following.includes(id)) {
-      user.following.push(id);
-      userToFollow.followers.push(userId);
-      await user.save();
-      await userToFollow.save();
+    if (!profile.following.includes(followId)) {
+      profile.following.push(followId);
+      profileToFollow.followers.push(userId);
+
+      await Promise.all([profile.save(), profileToFollow.save()]);
     }
 
     res.status(200).json({ message: "User followed successfully" });
   } catch (error) {
-    console.error("Error following user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 });
 
 router.post("/unfollow/:id", async (req, res) => {
   const userId = req.userId;
-  const { id } = req.params;
+  const { id: unfollowId } = req.params;
 
   try {
-    const user = await User.findById(userId);
-    const userToUnfollow = await User.findById(id);
+    const [profile, profileToUnfollow] = await Promise.all([
+      Profile.findOne({ user: userId }),
+      Profile.findOne({ user: unfollowId }),
+    ]);
 
-    if (!userToUnfollow) {
-      return res.status(404).json({ message: "User to unfollow not found" });
+    if (!profile || !profileToUnfollow) {
+      return res.status(404).json({ message: "User profile not found" });
     }
 
-    user.following = user.following.filter((followId) => followId.toString() !== id);
-    userToUnfollow.followers = userToUnfollow.followers.filter((followerId) => followerId.toString() !== userId);
+    profile.following = profile.following.filter((id) => id.toString() !== unfollowId);
+    profileToUnfollow.followers = profileToUnfollow.followers.filter((id) => id.toString() !== userId);
 
-    await user.save();
-    await userToUnfollow.save();
+    await Promise.all([profile.save(), profileToUnfollow.save()]);
 
     res.status(200).json({ message: "User unfollowed successfully" });
   } catch (error) {
-    console.error("Error unfollowing user:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error });
   }
 });
+
 
 
 export default router;
