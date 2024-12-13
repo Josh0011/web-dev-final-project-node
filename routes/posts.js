@@ -6,7 +6,7 @@ import { requireAdmin } from "../permissions/role.js";
 const router = express.Router();
 
 router.use(authenticate);
-// Create a post (accessible by all logged-in users)
+
 router.post("/", async (req, res) => {
   const { title, body, image, tags } = req.body;
 
@@ -26,7 +26,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Update a post (restricted to admins)
 router.put("/:id", requireAdmin, async (req, res) => {
   const { title, body, image, tags } = req.body;
 
@@ -48,7 +47,6 @@ router.put("/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// Delete a post (restricted to admins)
 router.delete("/:id", requireAdmin, async (req, res) => {
   try {
     const deletedPost = await Post.findByIdAndDelete(req.params.id);

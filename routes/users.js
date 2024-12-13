@@ -6,7 +6,6 @@ import { requireAdmin } from "../permissions/role.js";
 const router = express.Router();
 router.use(authenticate);
 
-// Get all users (restricted to admins)
 router.get("/", requireAdmin, async (req, res) => {
   try {
     const users = await User.find().select("-password");
@@ -17,7 +16,6 @@ router.get("/", requireAdmin, async (req, res) => {
   }
 });
 
-// Ban a user (restricted to admins)
 router.put("/ban/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
 

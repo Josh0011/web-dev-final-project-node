@@ -8,9 +8,9 @@ import { authenticate } from "../permissions/authenticate.js";
 const router = express.Router();
 router.use(authenticate);
 
-// Get Current User's Profile
+
 router.get("/", async (req, res) => {
-  const userId = req.userId; // Assume middleware sets userId from authentication token
+  const userId = req.userId; 
 
   try {
     const user = await User.findById(userId)
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
       .populate("following", "username profilePic");
 
     const posts = await Post.find({ author: userId }).populate("comments");
-    const recentGames = []; // Populate this if games data is added to DB
+    const recentGames = []; 
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get Another User's Profile by ID
+
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -45,13 +45,13 @@ router.get("/:id", async (req, res) => {
       .populate("following", "username profilePic");
 
     const posts = await Post.find({ author: id }).populate("comments");
-    const recentGames = []; // Populate if games data is added to DB
+    const recentGames = []; 
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Hide sensitive information
+    
     const { email, brawlstarsId, ...safeUserData } = user.toObject();
 
     res.status(200).json({
@@ -65,9 +65,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Update Current User's Profile
+
 router.put("/", async (req, res) => {
-  const userId = req.userId; // Assume middleware sets userId from authentication token
+  const userId = req.userId; 
   const { username, email, brawlstarsId } = req.body;
 
   try {
