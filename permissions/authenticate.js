@@ -12,9 +12,12 @@ export const authenticate = async (req, res, next) => {
     const firebaseUid = decodedToken.uid;
 
     const user = await User.findOne({ firebaseUid });
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.role === "banned") {
+      return res.status(403).json({ message: "User is banned" });
     }
 
     req.userId = user._id;
