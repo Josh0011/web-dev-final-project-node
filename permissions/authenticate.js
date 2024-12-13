@@ -18,7 +18,7 @@ export const authenticate = async (req, res, next) => {
     }
 
     req.userId = user._id;
-    req.userRole = user.role; // Add user role to the request object
+    req.userRole = user.role;
     next();
   } catch (error) {
     console.error("Authentication error:", error);

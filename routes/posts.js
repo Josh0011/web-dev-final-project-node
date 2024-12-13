@@ -1,11 +1,11 @@
 import express from "express";
 import Post from "../models/Post.js";
-import { authenticate } from "../middleware/authenticate.js";
-import { requireAdmin } from "../middleware/roleMiddleware.js";
+import { authenticate } from "../permissions/authenticate.js";
+import { requireAdmin } from "../permissions/role.js";
 
 const router = express.Router();
-router.use(authenticate);
 
+router.use(authenticate);
 // Create a post (accessible by all logged-in users)
 router.post("/", async (req, res) => {
   const { title, body, image, tags } = req.body;
