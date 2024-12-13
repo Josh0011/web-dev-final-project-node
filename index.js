@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import userRoutes from "./routes/users.js";
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js"
+import postRoutes from "./routes/posts.js"
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -40,5 +41,6 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes)
+app.use("/api/posts"), postRoutes
 
 app.listen(4001)
