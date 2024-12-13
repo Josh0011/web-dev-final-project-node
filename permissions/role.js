@@ -1,6 +1,6 @@
   export const requireAdmin = (req, res, next) => {
-    const userRole = req.userRole; // Role extracted by the `authenticate` middleware
-  
+    const userRole = req.userRole; 
+    
     if (!userRole) {
       return res.status(401).json({ message: "Unauthorized: Role not found" });
     }

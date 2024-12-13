@@ -1,35 +1,45 @@
 import express from "express";
 import User from "../models/User.js";
-import { authenticate } from "../permissions/authenticate.js";
 import { requireAdmin } from "../permissions/role.js";
 
 const router = express.Router();
-router.use(authenticate);
-
 
 router.post("/register", async (req, res) => {
   const { firebaseUid, email, role } = req.body;
 
-  console.log("Received registration request:", { firebaseUid, email, role }); // Debug log
+  console.log("Received registration request:", { firebaseUid, email, role });
 
   try {
+    if (!firebaseUid || !email || !role) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
     const existingUser = await User.findOne({ firebaseUid });
     if (existingUser) {
-      console.log("User already exists:", existingUser); // Debug log
       return res.status(400).json({ message: "User already exists" });
     }
 
     const newUser = new User({ firebaseUid, email, role });
     const savedUser = await newUser.save();
 
-    console.log("User registered in MongoDB:", savedUser); // Debug log
-
+    console.log("User registered in MongoDB:", savedUser);
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    console.error("Error registering user in MongoDB:", error); // Debug log
-    res.status(500).json({ message: "Internal server error" });
+  
+    if (error.code === 11000) {
+      console.error("Duplicate key error:", error.keyValue);
+      res.status(400).json({ message: "Duplicate field: " + JSON.stringify(error.keyValue) });
+    } else {
+      console.error("Error registering user in MongoDB:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 });
+
+
+
+import { authenticate } from "../permissions/authenticate.js";
+router.use(authenticate);
 
 router.get("/", requireAdmin, async (req, res) => {
   try {
